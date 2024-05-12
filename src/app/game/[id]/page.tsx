@@ -4,6 +4,48 @@ import Image from "next/image";
 import { Container } from "@/components/container";
 import { Label } from "@/components/label";
 import { GameCard } from "@/components/GameCard";
+import { Metadata } from "next";
+
+interface PropsParams {
+  params: {
+    id: string;
+  }
+}
+
+export async function generateMetadata({ params }: PropsParams): Promise<Metadata> {
+  try {
+    const response: GameProps = await fetch(`${process.env.NEXT_API_URL}/next-api/?api=game&id=${params.id}`, { next: { revalidate: 1 } })
+      .then((res) => res.json())
+      .catch(() => {
+        return {
+          title: "Daly Games"
+        }
+      })
+
+    return {
+      title: response.title,
+      description: `${response.description.slice(0, 100)}...`,
+      openGraph: {
+        title: response.title,
+        images: [response.image_url]
+      },
+      robots: {
+        index: true,
+        follow: true,
+        nocache: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          noimageindex: true
+        }
+      }
+    }
+  } catch (error) {
+    return {
+      title: "Daly Games"
+    }
+  }
+}
 
 async function getData(id: string) {
   try {
